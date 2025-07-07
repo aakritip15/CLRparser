@@ -1,32 +1,90 @@
+ body {
+  background: #f4f6fa;
+}
 .container {
-  max-width: 900px;
+  max-width: 950px;
   margin: 0 auto;
   padding: 2rem;
-  font-family: sans-serif;
+  font-family: 'Segoe UI', Arial, sans-serif;
 }
 h1 {
   text-align: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.2rem;
+  font-size: 2.2rem;
+  letter-spacing: 1px;
 }
 .section {
   margin-bottom: 2rem;
+}
+.card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px #0001;
+  padding: 1.2rem 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.rules-card {
+  background: #eaf6ff;
+  border-left: 5px solid #2196f3;
+  border-radius: 8px;
+  padding: 1rem 1.5rem;
+  margin-bottom: 2rem;
+}
+.rules-card h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: #1976d2;
+}
+.rules-card ul {
+  margin: 0.5rem 0 0 1.2rem;
+  font-size: 1.01rem;
 }
 textarea {
   width: 100%;
   font-family: monospace;
   font-size: 1rem;
   margin-bottom: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #bbb;
+  padding: 0.5rem;
+  background: #f8fafd;
 }
 input[type="text"], input[type="search"], input:not([type]) {
   font-size: 1rem;
   padding: 0.3rem;
   margin-right: 0.5rem;
+  border-radius: 5px;
+  border: 1px solid #bbb;
+  background: #f8fafd;
 }
 button {
   padding: 0.4rem 1.2rem;
   font-size: 1rem;
   margin-top: 0.5rem;
+  margin-left: 0.2rem;
   cursor: pointer;
+  background: #2196f3;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  transition: background 0.2s;
+}
+button:hover {
+  background: #1769aa;
+}
+.toggle-btn {
+  background: #fff;
+  color: #2196f3;
+  border: 1px solid #2196f3;
+  margin-left: 1rem;
+  font-size: 0.95rem;
+  padding: 0.2rem 0.8rem;
+  border-radius: 5px;
+  transition: background 0.2s, color 0.2s;
+}
+.toggle-btn:hover {
+  background: #2196f3;
+  color: #fff;
 }
 .table-scroll {
   overflow-x: auto;
@@ -35,15 +93,18 @@ table {
   border-collapse: collapse;
   width: 100%;
   margin-top: 0.5rem;
+  background: #f8fafd;
+  border-radius: 6px;
+  overflow: hidden;
 }
 th, td {
   border: 1px solid #aaa;
   padding: 0.3rem 0.6rem;
   text-align: center;
-  font-size: 0.95rem;
+  font-size: 0.97rem;
 }
 th {
-  background: #f0f0f0;
+  background: #e3f2fd;
 }
 .error {
   color: #b00;
@@ -53,16 +114,6 @@ th {
   border: 1px solid #b00;
   border-radius: 4px;
 }
-footer {
-  margin-top: 2rem;
-  text-align: center;
-  color: #888;
-  font-size: 0.95rem;
-}
-a {
-  color: #0077cc;
-}
-
 .states-list {
   display: flex;
   flex-wrap: wrap;
@@ -84,4 +135,22 @@ a {
 }
 .state-block li {
   margin-bottom: 0.2rem;
+}
+.diagram-block {
+  background: #f8f8f8;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 1rem;
+  min-width: 320px;
+  margin-bottom: 1rem;
+  overflow-x: auto;
+}
+footer {
+  margin-top: 2rem;
+  text-align: center;
+  color: #888;
+  font-size: 0.95rem;
+}
+a {
+  color: #0077cc;
 }
