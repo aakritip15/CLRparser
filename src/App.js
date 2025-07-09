@@ -304,9 +304,7 @@ export default function App() {
         </div>
       )}
       <footer>
-        <p>
-          Inspired by <a href="https://clr-parser.vercel.app/" target="_blank" rel="noopener noreferrer">clr-parser.vercel.app</a>
-        </p>
+      
       </footer>
     </div>
   );
