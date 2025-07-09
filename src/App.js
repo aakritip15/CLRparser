@@ -302,10 +302,7 @@ export default function App() {
             </table>
           </div>
         </div>
-      )}
-      <footer>
-      
-      </footer>
+      )} 
     </div>
   );
 }

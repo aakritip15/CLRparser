@@ -1,0 +1,346 @@
+Chapter 3 Code Implementation ................................................................................ 7
+
+3.1 Initialize Grammar Algorithm ...................................................................... 7
+
+Algorithm: parseGrammar(text)
+Input: text (string) - Grammar rules in text format
+Output: Grammar object with rules, nonTerminals, terminals, and start symbol
+
+Description:
+This algorithm initializes the grammar by parsing text input containing production rules.
+It processes each line, extracts left-hand side (LHS) and right-hand side (RHS) of productions,
+identifies terminals and non-terminals, and constructs a structured grammar object.
+
+Steps:
+1. Split input text into lines and filter out empty lines and comments
+2. For each line, split by "->" to separate LHS and RHS
+3. Add LHS to non-terminals set
+4. Split RHS by "|" to handle multiple productions per rule
+5. For each production, split by whitespace to get individual symbols
+6. Identify terminals by checking symbols not in non-terminals set
+7. Return grammar object with rules, nonTerminals array, terminals array, and start symbol
+
+Time Complexity: O(n*m) where n is number of rules and m is average symbols per rule
+Space Complexity: O(n*m) for storing grammar structure
+
+3.2 Compute First Sets Algorithm ...................................................................... 8
+
+Algorithm: computeFirst(grammar)
+Input: grammar (object) - Grammar with rules, nonTerminals, terminals
+Output: first (object) - FIRST sets for all symbols
+
+Description:
+This algorithm computes the FIRST sets for all symbols in the grammar using an iterative
+approach. FIRST(X) is the set of terminals that can appear at the beginning of strings
+derived from X, plus ε if X can derive the empty string.
+
+Steps:
+1. Initialize FIRST sets: empty sets for non-terminals, singleton sets for terminals
+2. Repeat until no changes occur:
+   a. For each production rule A → α
+   b. If α starts with ε, add ε to FIRST(A)
+   c. Otherwise, for each symbol X in α:
+      - Add all terminals from FIRST(X) (except ε) to FIRST(A)
+      - If ε ∉ FIRST(X), break the loop
+      - If ε ∈ FIRST(X), continue to next symbol
+3. Return the computed FIRST sets
+
+Key Properties:
+- For terminals a: FIRST(a) = {a}
+- For non-terminals A: FIRST(A) = {terminals that can start strings derived from A}
+- If A can derive ε, then ε ∈ FIRST(A)
+
+Time Complexity: O(n*m*k) where n=productions, m=avg symbols per production, k=iterations
+Space Complexity: O(t) where t is total number of symbols
+
+3.3 Compute Follow Sets Algorithm .................................................................. 9
+
+Algorithm: computeFollow(grammar, first)
+Input: grammar (object) - Grammar structure
+       first (object) - Precomputed FIRST sets
+Output: follow (object) - FOLLOW sets for all non-terminals
+
+Description:
+This algorithm computes the FOLLOW sets for all non-terminals in the grammar.
+FOLLOW(A) is the set of terminals that can appear immediately to the right of A
+in some sentential form, plus $ if A can appear at the end of a sentential form.
+
+Steps:
+1. Initialize FOLLOW sets: empty sets for all non-terminals
+2. Add $ to FOLLOW(S) where S is the start symbol
+3. Repeat until no changes occur:
+   a. For each production A → α
+   b. For each non-terminal B in α at position i:
+      c. Let β be the string following B (α[i+1:])
+      d. If β is empty, add FOLLOW(A) to FOLLOW(B)
+      e. Otherwise, compute FIRST(β):
+         - Add all terminals from FIRST(β) to FOLLOW(B)
+         - If β can derive ε, add FOLLOW(A) to FOLLOW(B)
+
+Key Properties:
+- FOLLOW(S) always contains $ (end marker)
+- FOLLOW(A) contains terminals that can follow A in sentential forms
+- Used in LR(1) parsing to determine lookahead symbols
+
+Time Complexity: O(n*m*k) where n=productions, m=avg symbols per production, k=iterations
+Space Complexity: O(t) where t is number of non-terminals
+
+3.4 Compute the First of the String Algorithm ................................................. 11
+
+Algorithm: computeFirstOfString(string, first)
+Input: string (array) - Array of symbols
+       first (object) - Precomputed FIRST sets
+Output: firstSet (Set) - FIRST set of the string
+
+Description:
+This algorithm computes the FIRST set of a string of symbols (β) by combining
+the FIRST sets of individual symbols in the string. It handles the case where
+the string can derive the empty string (nullable).
+
+Steps:
+1. Initialize firstSet as empty set
+2. Set nullable = true
+3. For each symbol X in the string:
+   a. Add all terminals from FIRST(X) (except ε) to firstSet
+   b. If ε ∉ FIRST(X):
+      - Set nullable = false
+      - Break the loop
+   c. If ε ∈ FIRST(X), continue to next symbol
+4. If nullable is true, add the lookahead symbol to firstSet
+5. Return firstSet
+
+Usage in CLR(1):
+This algorithm is used within the closure and goto functions to compute
+lookahead symbols for LR(1) items. When we have an item [A → α•Bβ, a],
+we need to compute FIRST(βa) to determine the lookahead symbols for
+productions of B.
+
+Time Complexity: O(m) where m is length of the string
+Space Complexity: O(t) where t is number of terminals
+
+3.5 Closure Algorithm ...................................................................................... 12
+
+Algorithm: closure(items, grammar, first)
+Input: items (array) - Set of LR(1) items
+       grammar (object) - Grammar structure
+       first (object) - Precomputed FIRST sets
+Output: closureSet (array) - Closure of the input items
+
+Description:
+This algorithm computes the closure of a set of LR(1) items. The closure operation
+adds all LR(1) items that can be reached from the initial items by applying
+the closure rules. This is a fundamental operation in LR(1) parsing.
+
+Steps:
+1. Initialize closureSet with input items
+2. Repeat until no new items are added:
+   a. For each item [A → α•Bβ, a] in closureSet:
+      b. If B is a non-terminal and • is not at the end:
+         c. Compute FIRST(βa) using computeFirstOfString
+         d. For each production B → γ in grammar:
+            e. For each symbol b in FIRST(βa):
+               f. Create new item [B → •γ, b]
+               g. If this item is not already in closureSet:
+                  - Add it to closureSet
+                  - Mark that changes occurred
+
+LR(1) Item Structure:
+Each item is represented as: {rule, dot, lookahead}
+- rule: production rule (lhs, rhs)
+- dot: position of the dot in the production
+- lookahead: terminal symbol for lookahead
+
+Key Properties:
+- Closure ensures all possible derivations are considered
+- Lookahead symbols are computed correctly for each item
+- Used in building the canonical collection of LR(1) items
+
+Time Complexity: O(n*m*k) where n=items, m=productions, k=iterations
+Space Complexity: O(n*m) for storing closure items
+
+3.6 GOTO Algorithm ........................................................................................ 14
+
+Algorithm: goto(items, X, grammar, first)
+Input: items (array) - Set of LR(1) items
+       X (string) - Symbol to transition on
+       grammar (object) - Grammar structure
+       first (object) - Precomputed FIRST sets
+Output: gotoSet (array) - GOTO set for symbol X
+
+Description:
+This algorithm computes the GOTO set for a given set of LR(1) items and a symbol X.
+The GOTO operation simulates the parser's action when it encounters symbol X
+in the input, moving the dot past X in applicable items.
+
+Steps:
+1. Initialize gotoSet as empty array
+2. For each item [A → α•Xβ, a] in items:
+   a. If the dot is before X in the production:
+      b. Create new item [A → αX•β, a] (dot moved past X)
+      c. Add this item to gotoSet
+3. Return closure(gotoSet, grammar, first)
+
+GOTO Operation Types:
+- Shift: When X is a terminal, GOTO represents a shift action
+- Goto: When X is a non-terminal, GOTO represents a goto action
+
+Key Properties:
+- GOTO simulates parser state transitions
+- The result is always a closure of the moved items
+- Used in building the canonical collection and parsing table
+
+Time Complexity: O(n*m) where n=items, m=productions
+Space Complexity: O(n) for storing goto items
+
+3.7 Build Canonical Collection Algorithm ....................................................... 15
+
+Algorithm: buildCLR1Table(grammar)
+Input: grammar (object) - Grammar structure
+Output: table (object) - Complete CLR(1) parsing table
+
+Description:
+This algorithm builds the canonical collection of LR(1) items and constructs
+the CLR(1) parsing table. It implements the complete CLR(1) parsing algorithm
+by building states and computing ACTION and GOTO tables.
+
+Steps:
+1. Augment the grammar:
+   a. Add new start symbol S' → S
+   b. Update grammar with augmented rule
+2. Compute FIRST sets for augmented grammar
+3. Initialize canonical collection C with I0:
+   a. Create initial item [S' → •S, $]
+   b. Compute closure of this item
+   c. Add to collection C
+4. Build canonical collection:
+   a. Repeat until no new states are added:
+      b. For each state I in C:
+         c. For each symbol X (terminal or non-terminal):
+            d. Compute GOTO(I, X)
+            e. If GOTO(I, X) is not empty and not already in C:
+               - Add GOTO(I, X) to C
+               - Record transition from I to new state on X
+5. Build ACTION and GOTO tables:
+   a. For each state I in C:
+      b. For each item [A → α•aβ, b] in I:
+         - If a is terminal: ACTION[I][a] = "shift to GOTO(I, a)"
+      c. For each item [A → α•, a] in I:
+         - If A = S' and α = S: ACTION[I][a] = "accept"
+         - Otherwise: ACTION[I][a] = "reduce by A → α"
+      d. For each non-terminal A: GOTO[I][A] = GOTO(I, A)
+
+Table Structure:
+- action: 2D array for shift/reduce actions
+- goto: 2D array for goto actions
+- states: Array of LR(1) item sets
+- terminals: Array of terminal symbols
+- nonTerminals: Array of non-terminal symbols
+- rules: Array of production rules
+
+Time Complexity: O(n²*m*k) where n=states, m=symbols, k=iterations
+Space Complexity: O(n*m) for storing parsing table
+
+3.8 Build Parsing Table Algorithm ................................................................... 16
+
+Algorithm: buildParsingTable(canonicalCollection, grammar)
+Input: canonicalCollection (array) - Canonical collection of LR(1) items
+       grammar (object) - Augmented grammar
+Output: actionTable, gotoTable (objects) - Parsing tables
+
+Description:
+This algorithm constructs the ACTION and GOTO tables from the canonical collection
+of LR(1) items. It determines the appropriate parsing actions for each state
+and input symbol combination.
+
+Steps:
+1. Initialize ACTION and GOTO tables as 2D arrays
+2. For each state I in canonical collection:
+   a. For each item in state I:
+      b. If item is [A → α•aβ, b] where a is terminal:
+         - ACTION[I][a] = "s" + GOTO(I, a)
+      c. If item is [A → α•, a] (complete item):
+         - If A = S' and α = S: ACTION[I][a] = "acc"
+         - Otherwise: ACTION[I][a] = "r" + production_number
+   d. For each non-terminal A:
+      - GOTO[I][A] = GOTO(I, A)
+3. Handle conflicts:
+   a. Check for shift/reduce conflicts
+   b. Check for reduce/reduce conflicts
+   c. If conflicts exist, grammar is not CLR(1)
+
+Action Types:
+- "s" + state: Shift action, move to specified state
+- "r" + production: Reduce action, apply specified production
+- "acc": Accept action, parsing successful
+
+Error Handling:
+- Grammar conflicts indicate the grammar is not CLR(1)
+- Missing entries indicate parsing errors
+
+Time Complexity: O(n*m) where n=states, m=symbols
+Space Complexity: O(n*m) for storing tables
+
+3.9 Parse Algorithm .......................................................................................... 17
+
+Algorithm: parseInputString(grammar, table, input)
+Input: grammar (object) - Grammar structure
+       table (object) - CLR(1) parsing table
+       input (string) - Input string to parse
+Output: steps (array) - Parsing steps and result
+
+Description:
+This algorithm performs the actual parsing of an input string using the CLR(1)
+parsing table. It simulates the LR(1) parser's behavior by maintaining a stack
+and following the actions specified in the parsing table.
+
+Steps:
+1. Tokenize input string and append $ (end marker)
+2. Initialize parsing stack with state 0
+3. Initialize position pointer to 0
+4. Repeat until accept or error:
+   a. Let current_state = top of stack
+   b. Let current_token = input[position]
+   c. Let action = ACTION[current_state][current_token]
+   d. If action is "acc":
+      - Parsing successful, return steps
+   e. If action starts with "s" (shift):
+      - Push current_token onto stack
+      - Push next_state onto stack
+      - Increment position
+      - Record shift step
+   f. If action starts with "r" (reduce):
+      - Pop 2*|rhs| symbols from stack (symbols and states)
+      - Let A be the left-hand side of production
+      - Let current_state = top of stack
+      - Let next_state = GOTO[current_state][A]
+      - Push A onto stack
+      - Push next_state onto stack
+      - Record reduce step
+   g. If no action found:
+      - Throw parsing error
+
+Stack Operations:
+- Shift: Push symbol and new state
+- Reduce: Pop symbols, push non-terminal and goto state
+- Accept: Parsing complete
+
+Error Handling:
+- Missing action entries indicate syntax errors
+- Invalid goto states indicate grammar errors
+- Stack underflow indicates parsing errors
+
+Output Format:
+Each step contains:
+- stack: Current parsing stack
+- input: Remaining input tokens
+- action: Performed action (shift/reduce/accept)
+
+Time Complexity: O(n) where n is length of input
+Space Complexity: O(n) for parsing stack
+
+Summary:
+The CLR(1) parser implementation consists of nine core algorithms that work together
+to provide a complete LR(1) parsing solution. The algorithms handle grammar
+initialization, FIRST/FOLLOW set computation, canonical collection building,
+parsing table construction, and actual string parsing. The implementation is
+robust, handling various edge cases and providing detailed error reporting.
